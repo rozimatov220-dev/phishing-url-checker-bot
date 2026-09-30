@@ -3,6 +3,7 @@ import asyncio
 import logging
 import base64
 import requests
+from aiohttp import web
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import CommandStart
 
@@ -49,7 +50,7 @@ def check_url_virustotal(url_to_check: str) -> str:
         if malicious > 0:
             verdict = f"🚨 **XAVFLI HAVOLA!**\n\nVirusTotal antiviruslarining **{malicious}** tasi bu havolani zararli/fishing deb topdi."
         elif suspicious > 0:
-            verdict = f"⚠ **SHUBHALI HAVOLA!**\n\n**{suspicious}** ta antivirus bu havolani shubhali deb hisobladi."
+            verdict = f"⚠️ **SHUBHALI HAVOLA!**\n\n**{suspicious}** ta antivirus bu havolani shubhali deb hisobladi."
         else:
             verdict = f"✅ **XAVFSIZ HAVOLA!**\n\n({harmless} ta antivirus tekshirdi, hech qanday tahdid topilmadi)."
 
@@ -71,7 +72,7 @@ async def start_handler(message: types.Message):
         f"Men Phishing & URL Checker botiman. 🛡️\n"
         f"Manga tekshirmoqchi bo'lgan veb-sayt havolasini (masalan, `https://example.com`) yuboring.\n\n"
         f"───\n"
-        f"👨‍‍💻 **Dasturchi:** Ro'zmatov Azizbek\n"
+        f"👨‍💻 **Dasturchi:** Ro'zmatov Azizbek\n"
         f"📩 **Telegram:** @azizcha_fm"
     )
 
@@ -94,8 +95,24 @@ async def analyze_url(message: types.Message):
     
     await wait_msg.edit_text(result_text, parse_mode="Markdown")
 
+# Render portini aldamchi veb-server bilan ta'minlash funksiyasi
+async def handle(request):
+    return web.Response(text="Bot is running live!")
+
+async def start_web_server():
+    app = web.Application()
+    app.router.add_get("/", handle)
+    runner = web.AppRunner(app)
+    await runner.setup()
+    port = int(os.environ.get("PORT", 10000))
+    site = web.TCPSite(runner, "0.0.0.0", port)
+    await site.start()
+
 async def main():
     logging.basicConfig(level=logging.INFO)
+    # Soxta portni ishga tushirish (Render talabi uchun)
+    await start_web_server()
+    # Botning polling jarayoni
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
