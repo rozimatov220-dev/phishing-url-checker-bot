@@ -72,8 +72,8 @@ async def start_handler(message: types.Message):
         f"Men Phishing & URL Checker botiman. 🛡️\n"
         f"Manga tekshirmoqchi bo'lgan veb-sayt havolasini (masalan, `https://example.com`) yuboring.\n\n"
         f"───\n"
-        f"👨‍💻 **Dasturchi:** Ro'zmatov Azizbek\n"
-        f"📩 **Telegram:** @azizcha_fm"
+        f"👨‍💻 Dasturchi: Ro'zmatov Azizbek\n"
+        f"📩 Telegram:@azizcha__fm"
     )
 
     await message.answer(welcome_text, parse_mode="Markdown")
