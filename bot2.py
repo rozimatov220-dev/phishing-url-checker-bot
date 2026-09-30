@@ -16,7 +16,6 @@ dp = Dispatcher()
 
 def check_url_virustotal(url_to_check: str) -> str:
     """VirusTotal v3 API orqali URL'ni tekshirish funksiyasi"""
-    # VirusTotal v3 URL'ni Base64 (padding'larsiz) ko'rinishida qabul qiladi
     url_id = base64.urlsafe_b64encode(url_to_check.encode()).decode().strip("=")
     
     endpoint = f"https://www.virustotal.com/api/v3/urls/{url_id}"
@@ -27,7 +26,6 @@ def check_url_virustotal(url_to_check: str) -> str:
     try:
         response = requests.get(endpoint, headers=headers)
         
-        # Agar URL ilgari skan qilinmagan bo'lsa, uni birinchi tahlilga yuborish kerak
         if response.status_code == 404:
             scan_url = "https://www.virustotal.com/api/v3/urls"
             data = {"url": url_to_check}
@@ -48,11 +46,11 @@ def check_url_virustotal(url_to_check: str) -> str:
         harmless = stats.get('harmless', 0)
         
         if malicious > 0:
-            verdict = f"🚨 **XAVFLI HAVOLA!**\n\nVirusTotal antiviruslarining **{malicious}** tasi bu havolani zararli/fishing deb topdi."
+            verdict = f"🚨 <b>XAVFLI HAVOLA!</b>\n\nVirusTotal antiviruslarining <b>{malicious}</b> tasi bu havolani zararli/fishing deb topdi."
         elif suspicious > 0:
-            verdict = f"⚠️ **SHUBHALI HAVOLA!**\n\n**{suspicious}** ta antivirus bu havolani shubhali deb hisobladi."
+            verdict = f"⚠️ <b>SHUBHALI HAVOLA!</b>\n\n<b>{suspicious}</b> ta antivirus bu havolani shubhali deb hisobladi."
         else:
-            verdict = f"✅ **XAVFSIZ HAVOLA!**\n\n({harmless} ta antivirus tekshirdi, hech qanday tahdid topilmadi)."
+            verdict = f"✅ <b>XAVFSIZ HAVOLA!</b>\n\n({harmless} ta antivirus tekshirdi, hech qanday tahdid topilmadi)."
 
         return verdict
 
@@ -61,41 +59,39 @@ def check_url_virustotal(url_to_check: str) -> str:
 
 @dp.message(CommandStart())
 async def start_handler(message: types.Message):
-    # Foydalanuvchi ma'lumotlarini olish
     first_name = message.from_user.first_name
     username = message.from_user.username
     username_str = f"@{username}" if username else "mavjud emas"
 
+    # HTML teglardan foydalanildi (Maxsus belgilarda xato bermaydi)
     welcome_text = (
-        f"Salom, **{first_name}**! 👋\n"
-        f"Sizning Telegram nikiz: **{username_str}**\n\n"
+        f"Salom, <b>{first_name}</b>! 👋\n"
+        f"Sizning Telegram nikiz: <b>{username_str}</b>\n\n"
         f"Men Phishing & URL Checker botiman. 🛡️\n"
-        f"Manga tekshirmoqchi bo'lgan veb-sayt havolasini (masalan, `https://example.com`) yuboring.\n\n"
+        f"Manga tekshirmoqchi bo'lgan veb-sayt havolasini (masalan, <code>https://example.com</code>) yuboring.\n\n"
         f"───\n"
         f"👨‍💻 Dasturchi: Ro'zmatov Azizbek\n"
-        f"📩 Aloqa uchun:500514575"
+        f"📩 Aloqa uchun: 500514575"
     )
 
-    await message.answer(welcome_text, parse_mode="Markdown")
+    await message.answer(welcome_text, parse_mode="HTML")
 
 @dp.message()
 async def analyze_url(message: types.Message):
     user_text = message.text.strip()
     
-    # Havola ko'rinishida ekanligini oddiy tekshirish
     if not user_text.startswith(('http://', 'https://')):
-        await message.answer("⚠️ Iltimos, to'liq havolani yuboring (masalan: `https://...`).")
+        await message.answer("⚠️ Iltimos, to'liq havolani yuboring (masalan: <code>https://...</code>).", parse_mode="HTML")
         return
 
     wait_msg = await message.answer("🔍 Havola VirusTotal orqali tekshirilmoqda, kuting...")
     
-    # VirusTotal so'rovi vaqt olishi mumkinligi uchun uni alohida thread'da bajaramiz
     loop = asyncio.get_event_loop()
     result_text = await loop.run_in_executor(None, check_url_virustotal, user_text)
     
-    await wait_msg.edit_text(result_text, parse_mode="Markdown")
+    await wait_msg.edit_text(result_text, parse_mode="HTML")
 
-# Render portini aldamchi veb-server bilan ta'minlash funksiyasi
+# Render portini ta'minlash funksiyasi
 async def handle(request):
     return web.Response(text="Bot is running live!")
 
@@ -110,9 +106,7 @@ async def start_web_server():
 
 async def main():
     logging.basicConfig(level=logging.INFO)
-    # Soxta portni ishga tushirish (Render talabi uchun)
     await start_web_server()
-    # Botning polling jarayoni
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
