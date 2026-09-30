@@ -6,9 +6,10 @@ import requests
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import CommandStart
 
-# API kalitlarni kiriting
+# API kalitlarni muhit o'zgaruvchilaridan olish
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 VIRUSTOTAL_API_KEY = os.getenv("VIRUSTOTAL_API_KEY")
+
 bot = Bot(token=TELEGRAM_BOT_TOKEN)
 dp = Dispatcher()
 
@@ -48,7 +49,7 @@ def check_url_virustotal(url_to_check: str) -> str:
         if malicious > 0:
             verdict = f"🚨 **XAVFLI HAVOLA!**\n\nVirusTotal antiviruslarining **{malicious}** tasi bu havolani zararli/fishing deb topdi."
         elif suspicious > 0:
-            verdict = f"⚠️️ **SHUBHALI HAVOLA!**\n\n**{suspicious}** ta antivirus bu havolani shubhali deb hisobladi."
+            verdict = f"⚠ **SHUBHALI HAVOLA!**\n\n**{suspicious}** ta antivirus bu havolani shubhali deb hisobladi."
         else:
             verdict = f"✅ **XAVFSIZ HAVOLA!**\n\n({harmless} ta antivirus tekshirdi, hech qanday tahdid topilmadi)."
 
@@ -59,10 +60,22 @@ def check_url_virustotal(url_to_check: str) -> str:
 
 @dp.message(CommandStart())
 async def start_handler(message: types.Message):
-    await message.answer(
-        "Salom! Men Phishing & URL Checker botiman. 🛡️\n\n"
-        "Manga tekshirmoqchi bo'lgan veb-sayt havolasini (masalan, `https://example.com`) yuboring."
+    # Foydalanuvchi ma'lumotlarini olish
+    first_name = message.from_user.first_name
+    username = message.from_user.username
+    username_str = f"@{username}" if username else "mavjud emas"
+
+    welcome_text = (
+        f"Salom, **{first_name}**! 👋\n"
+        f"Sizning Telegram nikiz: **{username_str}**\n\n"
+        f"Men Phishing & URL Checker botiman. 🛡️\n"
+        f"Manga tekshirmoqchi bo'lgan veb-sayt havolasini (masalan, `https://example.com`) yuboring.\n\n"
+        f"───\n"
+        f"👨‍‍💻 **Dasturchi:** Ro'zmatov Azizbek\n"
+        f"📩 **Telegram:** @azizcha_fm"
     )
+
+    await message.answer(welcome_text, parse_mode="Markdown")
 
 @dp.message()
 async def analyze_url(message: types.Message):
@@ -75,7 +88,7 @@ async def analyze_url(message: types.Message):
 
     wait_msg = await message.answer("🔍 Havola VirusTotal orqali tekshirilmoqda, kuting...")
     
-    # VirusTotal so'rovi vaqt olishi mumkinligi uchun uni alohida thredda bajaramiz
+    # VirusTotal so'rovi vaqt olishi mumkinligi uchun uni alohida thread'da bajaramiz
     loop = asyncio.get_event_loop()
     result_text = await loop.run_in_executor(None, check_url_virustotal, user_text)
     
