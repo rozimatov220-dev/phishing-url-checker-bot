@@ -73,7 +73,7 @@ async def start_handler(message: types.Message):
         f"Manga tekshirmoqchi bo'lgan veb-sayt havolasini (masalan, `https://example.com`) yuboring.\n\n"
         f"───\n"
         f"👨‍💻 Dasturchi: Ro'zmatov Azizbek\n"
-        f"📩 Telegram:@azizcha__fm"
+        f"📩 Aloqa uchun:500514575"
     )
 
     await message.answer(welcome_text, parse_mode="Markdown")
